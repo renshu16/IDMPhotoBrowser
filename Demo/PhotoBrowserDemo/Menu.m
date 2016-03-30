@@ -111,6 +111,7 @@
     IDMPhotoBrowser *browser = [[IDMPhotoBrowser alloc] initWithPhotos:photos animatedFromView:sender]; // using initWithPhotos:animatedFromView: method to use the zoom-in animation
     browser.delegate = self;
     browser.displayActionButton = NO;
+    browser.displayDeleteButton = YES;
     browser.displayArrowButton = YES;
     browser.displayCounterLabel = YES;
     browser.usePopAnimation = YES;
@@ -281,6 +282,12 @@
     
     NSString *title = [NSString stringWithFormat:@"Option %zu", buttonIndex+1];
     [UIAlertView showAlertViewWithTitle:title];
+}
+
+-(void)photoBrowser:(IDMPhotoBrowser *)photoBrowser deleteActionAtPageIndex:(NSUInteger)photoIndex
+{
+    id <IDMPhoto> photo = [photoBrowser photoAtIndex:photoIndex];
+    NSLog(@"Did delete photoBrowser with photo index: %zu, photo caption: %@", photoIndex, photo.caption);
 }
 
 @end

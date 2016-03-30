@@ -38,7 +38,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 
 	// Toolbar
 	UIToolbar *_toolbar;
-	UIBarButtonItem *_previousButton, *_nextButton, *_actionButton;
+	UIBarButtonItem *_previousButton, *_nextButton, *_actionButton, *_deleteButton;
     UIBarButtonItem *_counterButton;
     UILabel *_counterLabel;
 
@@ -130,7 +130,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 @implementation IDMPhotoBrowser
 
 // Properties
-@synthesize displayDoneButton = _displayDoneButton, displayToolbar = _displayToolbar, displayActionButton = _displayActionButton, displayCounterLabel = _displayCounterLabel, useWhiteBackgroundColor = _useWhiteBackgroundColor, doneButtonImage = _doneButtonImage;
+@synthesize displayDoneButton = _displayDoneButton, displayToolbar = _displayToolbar, displayActionButton = _displayActionButton, displayDeleteButton = _displayDeleteButton, displayCounterLabel = _displayCounterLabel, useWhiteBackgroundColor = _useWhiteBackgroundColor, doneButtonImage = _doneButtonImage;
 @synthesize leftArrowImage = _leftArrowImage, rightArrowImage = _rightArrowImage, leftArrowSelectedImage = _leftArrowSelectedImage, rightArrowSelectedImage = _rightArrowSelectedImage;
 @synthesize displayArrowButton = _displayArrowButton, actionButtonTitles = _actionButtonTitles;
 @synthesize arrowButtonsChangePhotosAnimated = _arrowButtonsChangePhotosAnimated;
@@ -163,6 +163,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 
         _displayToolbar = YES;
         _displayActionButton = YES;
+        _displayDeleteButton = NO;
         _displayArrowButton = YES;
         _displayCounterLabel = NO;
 
@@ -651,6 +652,10 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     _actionButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction
                                                                   target:self
                                                                   action:@selector(actionButtonPressed:)];
+    
+    _deleteButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash
+                                                                  target:self
+                                                                  action:@selector(deleteButtonPressed:)];
 
     // Gesture
     _panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panGestureRecognized:)];
@@ -800,8 +805,11 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
                                                                                target:self action:nil];
     NSMutableArray *items = [NSMutableArray new];
 
-    if (_displayActionButton)
+    if (_displayActionButton && !_displayDeleteButton)
         [items addObject:fixedLeftSpace];
+    if (_displayDeleteButton)
+        [items addObject:_deleteButton];
+    
     [items addObject:flexSpace];
 
     if (numberOfPhotos > 1 && _displayArrowButton)
@@ -1243,16 +1251,30 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 #pragma mark - Buttons
 
 - (void)doneButtonPressed:(id)sender {
-    if (_senderViewForAnimation && _currentPageIndex == _initalPageIndex) {
-        IDMZoomingScrollView *scrollView = [self pageDisplayedAtIndex:_currentPageIndex];
-        [self performCloseAnimationWithScrollView:scrollView];
-    }
-    else {
-        _senderViewForAnimation.hidden = NO;
-        [self prepareForClosePhotoBrowser];
-        [self dismissPhotoBrowserAnimated:YES];
-    }
+//    if (_senderViewForAnimation && _currentPageIndex == _initalPageIndex) {
+//        IDMZoomingScrollView *scrollView = [self pageDisplayedAtIndex:_currentPageIndex];
+//        [self performCloseAnimationWithScrollView:scrollView];
+//    }
+//    else {
+//        _senderViewForAnimation.hidden = NO;
+//        [self prepareForClosePhotoBrowser];
+//        [self dismissPhotoBrowserAnimated:YES];
+//    }
+    
+    
+    _senderViewForAnimation.hidden = NO;
+    [self prepareForClosePhotoBrowser];
+    [self dismissPhotoBrowserAnimated:YES];
+    
 }
+-(void)deleteButtonPressed:(id)sender {
+    if ([_delegate respondsToSelector:@selector(photoBrowser:deleteActionAtPageIndex:)]) {
+        [_delegate photoBrowser:self deleteActionAtPageIndex:_currentPageIndex];
+    }
+    CGFloat animationDuration = 0.35;
+    [self performSelector:@selector(doneButtonPressed:) withObject:self afterDelay:animationDuration];
+}
+
 
 - (void)actionButtonPressed:(id)sender {
     id <IDMPhoto> photo = [self photoAtIndex:_currentPageIndex];
