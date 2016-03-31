@@ -1261,18 +1261,22 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 //        [self dismissPhotoBrowserAnimated:YES];
 //    }
     
-    
     _senderViewForAnimation.hidden = NO;
     [self prepareForClosePhotoBrowser];
     [self dismissPhotoBrowserAnimated:YES];
     
 }
 -(void)deleteButtonPressed:(id)sender {
-    if ([_delegate respondsToSelector:@selector(photoBrowser:deleteActionAtPageIndex:)]) {
-        [_delegate photoBrowser:self deleteActionAtPageIndex:_currentPageIndex];
-    }
-    CGFloat animationDuration = 0.35;
+    CGFloat animationDuration = 0.25;
     [self performSelector:@selector(doneButtonPressed:) withObject:self afterDelay:animationDuration];
+    
+    dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, animationDuration * NSEC_PER_SEC);
+    dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+        //do something
+        if ([_delegate respondsToSelector:@selector(photoBrowser:deleteActionAtPageIndex:)]) {
+            [_delegate photoBrowser:self deleteActionAtPageIndex:_currentPageIndex];
+        }
+    });
 }
 
 
